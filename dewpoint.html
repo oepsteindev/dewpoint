@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</head>
+
+
+
+
+<div class="container" style="background-color: #fff;padding:10px; border-radius:25px;">
+    
+    <div class="row border">
+        <div class="col-sm-6 col-md-12">
+            <div class="thumbnail" align="center" style="height:500px;">
+                <div id="img"></div>
+                <div class="caption">
+                    <div class="clearfix"></div>
+                    <h3><span id='desc'>How's my hair today?</span></h3>
+                    <br>
+                    <div id="info"></div>
+                    <div class="input-group col-md-6">
+                         <div class="clearfix"></div>
+                        <input type="text" class="form-control" id="zip" placeholder="Enter your zip code...." value="33614" size="5">
+                        <span class="input-group-btn">
+                    <button class="btn btn-primary" id="submit" type="button">Go!</button>
+              </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+
+$(function() {
+
+    $("#submit").click(function(e) {
+
+        e.preventDefault();
+
+
+        var zip = $("#zip").val();
+        if (zip.length < 5) {
+            $("#info").html("<span style='color:red'>Please enter a valid zip code.</span>");
+            return;
+        }
+
+
+        var url = 'https://api.wunderground.com/api/<your_api_key_here>/forecast/geolookup/conditions/q/' + zip + '/format.json';
+
+        var bad_hair_cat = 'http://img06.deviantart.net/2c2a/i/2013/236/5/5/doodle_237___persian_cat_by_giovannag-d6jlpei.jpg';
+        var good_hair_cat = 'http://i.imgur.com/ZiEBSak.jpg?1';
+
+        var img_height = 200;
+        var img_width = 200;
+        $.ajax({
+            timeout: 10000,
+            url: url,
+            type: "get",
+            dataType: 'jsonp',
+            data: {}, //this could be any data we have to pass
+            tryCount: 0,
+            retryLimit: 3,
+            success: function(resp) {
+
+                var location = resp['location']['city'];
+                var temp_f = resp['current_observation']['temp_f'];
+                var dewpoint = resp['current_observation']['dewpoint_string'];
+                var dewpoint_f = resp['current_observation']['dewpoint_f'];
+                var humidity = resp['current_observation']['relative_humidity'];
+                var icon_url = resp['current_observation']['icon_url'];
+
+                var image = (dewpoint_f > 65 ? "<img src='" + bad_hair_cat + "' height='" + img_height + "' width='" + img_width + "'>" : "<img src='" + good_hair_cat + "' height='" + img_height + "' width='" + img_width + "'>")
+                var desc = (dewpoint_f > 65 ? "Bad hair day! Run!" : "Good hair day, good kitty!");
+                var color = (dewpoint_f > 65 ? "red" : "green");
+
+                $("#img").html(image);
+                $("#desc").html(desc);
+
+                $("#info").html("Current temperature in " + location + " is: " + temp_f);
+
+                $("#info").append("<br>Current Dewpoint: " + "<span style='color:" + color + "'>" + dewpoint + "</span><br>");
+
+                $("#info").append("Relative Humidity:  <span style='color:" + color + "'>" + humidity + "</span><br>");
+
+                $("#info").append("Sky: <img src='" + icon_url + "'>");
+
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                if (textStatus == 'timeout') {
+                    this.tryCount++;
+                    if (this.tryCount <= this.retryLimit) {
+                        $.ajax(this);
+                        return;
+                    }
+                }
+
+            }
+        }); //end ajax
+    }); //end submit
+}); //end dom ready
+</script>
+
+<style>
+
+.border
+{
+    border:1px solid #ccc;
+    border-radius: 5px;
+}
+
+.clearfix
+{
+    clear:both; 
+    margin-top: 15px;
+}
+
+</style>
